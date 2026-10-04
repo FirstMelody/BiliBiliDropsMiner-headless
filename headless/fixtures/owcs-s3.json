@@ -1,0 +1,344 @@
+[
+  {
+    "expand": true,
+    "fakeHiddenInLayer": false,
+    "hiddenInLayer": false,
+    "label": "任务组件",
+    "level": 1,
+    "name": "EraTasklistPc",
+    "props": {
+      "style": {
+        "awardBgColor": "rgba(255, 255, 255, 0.2)",
+        "awardTxtColor": "rgba(255, 255, 255, 0.8)",
+        "bgColor": "rgba(0,20,60,0)",
+        "btnTxtColor": "rgba(255, 255, 255, 1)",
+        "desTxtColor": "rgba(148, 153, 160, 1)",
+        "mainTxtColor": "rgba(255, 255, 255, 1)",
+        "processActiveColor": "rgba(35, 211, 250, 1)",
+        "processAwardColor": "rgba(255, 255, 255, 1)",
+        "processUnActiveColor": "rgba(255, 255, 255, 1)",
+        "themeColor": "rgb(215,174,10)",
+        "width": 600
+      },
+      "tasklist": [
+        {
+          "accumulativeCount": 0,
+          "awardName": "太阳茶头像",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": "",
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播60分钟",
+              "awardname": "太阳茶头像",
+              "awardsid": "5ERAnwloghve5k00",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 60
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvp4i00"
+            }
+          ],
+          "counter": "6ERAnka4le",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 60,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/XoSbobCc6P.png",
+          "taskId": "6ERAcwloghvp4i00",
+          "taskName": "观看直播60分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        },
+        {
+          "accumulativeCount": 0,
+          "awardName": "提神畅饮",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": "",
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播120分钟",
+              "awardname": "提神畅饮",
+              "awardsid": "5ERAnwloghvw4400",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 120
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvolb00"
+            }
+          ],
+          "counter": "6ERAq7qyua",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 120,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/FmKDTw26uO.png",
+          "taskId": "6ERAcwloghvolb00",
+          "taskName": "观看直播120分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        },
+        {
+          "accumulativeCount": 0,
+          "awardName": "夏日沙堡",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": "",
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播240分钟",
+              "awardname": "夏日沙堡",
+              "awardsid": "5ERAnwloghveqv00",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 240
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvp8c00"
+            }
+          ],
+          "counter": "6ERAa5a6kt",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 240,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/1sQZG0I25h.png",
+          "taskId": "6ERAcwloghvp8c00",
+          "taskName": "观看直播240分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        },
+        {
+          "accumulativeCount": 0,
+          "awardName": "蛋白饮料",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": null,
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播360分钟",
+              "awardname": "蛋白饮料",
+              "awardsid": "5ERAnwloghv7op00",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 360
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvafd00"
+            }
+          ],
+          "counter": "6ERAhmbivu",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 360,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/Rw6Q2kOy3q.png",
+          "taskId": "6ERAcwloghvafd00",
+          "taskName": "观看直播360分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        },
+        {
+          "accumulativeCount": 0,
+          "awardName": "黑爪壮哉",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": "",
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播480分钟",
+              "awardname": "黑爪壮哉",
+              "awardsid": "5ERAnwloghv7m300",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 360
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvoxy00"
+            }
+          ],
+          "counter": "6ERAe204xa",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 360,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/KSFjvG8oVc.png",
+          "taskId": "6ERAcwloghvoxy00",
+          "taskName": "观看直播480分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        },
+        {
+          "accumulativeCount": 0,
+          "awardName": "电竞补给",
+          "backwardsCounters": false,
+          "btnBehavior": [
+            "SCROLL"
+          ],
+          "btnTxt": "",
+          "can_edit": 1,
+          "checkpoints": [
+            {
+              "alias": "观看直播600分钟",
+              "awardname": "电竞补给",
+              "awardsid": "5ERAnwloghvwf300",
+              "awardtype": 1,
+              "count": 1,
+              "list": [
+                {
+                  "cur_value": 0,
+                  "limit": 600
+                }
+              ],
+              "status": 1,
+              "ztasksid": "6ERAcwloghvaa000"
+            }
+          ],
+          "counter": "6ERA52ju1l",
+          "indicators": [
+            {
+              "cur_value": 0,
+              "limit": 600,
+              "name": ""
+            }
+          ],
+          "inviteActName": "",
+          "jumpLink": "",
+          "jumpPosition": "iGfFoAK4nR",
+          "periodType": 4,
+          "promptText": "",
+          "reserveId": "",
+          "showBtn": true,
+          "statisticType": 1,
+          "taskAwardType": 1,
+          "taskDes": "",
+          "taskIcon": "//i0.hdslb.com/bfs/activity-plat/static/8201/11647/11874/d41d8cd98f00b204e9800998ecf8427e/JLSi7Nx5Ae.png",
+          "taskId": "6ERAcwloghvaa000",
+          "taskName": "观看直播600分钟",
+          "taskStatus": 1,
+          "taskType": 1,
+          "topicID": "",
+          "topicName": ""
+        }
+      ]
+    },
+    "slots": [],
+    "type": "Component",
+    "uuid": "iKjZ8Pg39o",
+    "validatedType": null,
+    "version": "0.3.35"
+  }
+]

@@ -1,0 +1,15 @@
+**
+!package.json
+!package-lock.json
+!requirements-headless.txt
+!bilibili_drops_miner/
+!bilibili_drops_miner/**
+!headless/
+!headless/**
+headless/config.json
+headless/*.local.json
+headless/integration/
+headless/*.test.mjs
+**/__pycache__/
+**/*.pyc
+**/.env*

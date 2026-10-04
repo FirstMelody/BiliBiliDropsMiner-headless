@@ -1,0 +1,14 @@
+{
+  "name": "bilibili-drops-headless",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "start": "python3 headless/run.py",
+    "test": "node --test headless/*.test.mjs",
+    "test:integration": "node --test headless/integration/*.test.mjs",
+    "browser:install": "playwright-core install chromium --no-shell"
+  },
+  "dependencies": {"playwright-core": "1.58.2", "ws": "8.18.3"}
+}

@@ -1,0 +1,18 @@
+{
+  "roomId": 23612045,
+  "cookie": "SESSDATA=YOUR_SESSDATA; bili_jct=YOUR_CSRF; DedeUserID=YOUR_UID; buvid3=YOUR_BUVID3",
+  "refreshToken": "YOUR_AC_TIME_VALUE",
+  "dataDir": "../data",
+  "pythonExecutable": "../.venv/bin/python",
+  "browserExecutable": null,
+  "pollIntervalMs": 60000,
+  "discoveryIntervalMs": 600000,
+  "refreshIntervalMs": 86400000,
+  "stallIntervalMs": 900000,
+  "notifications": {
+    "enabled": false,
+    "websocketUrl": "ws://127.0.0.1:13001",
+    "accessToken": "",
+    "userId": 0
+  }
+}

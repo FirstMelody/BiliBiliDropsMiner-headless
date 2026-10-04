@@ -15,3 +15,11 @@ AGENTS.md
 .DS_Store
 web-data/
 .env
+node_modules/
+data/
+downloads/
+evidence/
+headless/config.json
+*.local.json
+.env.*
+!*.example.json

@@ -1,0 +1,23 @@
+name: Linux headless
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: npm ci
+      - run: python -m pip install -r requirements-headless.txt
+      - run: npx playwright-core install --with-deps chromium --no-shell
+      - run: npm test
+      - run: env -u DISPLAY npm run test:integration
+      - run: python -m unittest tests.test_miner_login_guard tests.test_x25kn_worker tests.test_rewards
+      - run: python headless/integration/test_runtime.py

@@ -1,0 +1,13 @@
+services:
+  drops:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    init: true
+    restart: unless-stopped
+    shm_size: 256mb
+    volumes:
+      - ./headless/config.json:/app/headless/config.json:ro
+      - ./data:/app/data
+    stop_grace_period: 45s
+    # No browser/CDP or HTTP ports exposed.

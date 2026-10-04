@@ -1,18 +1,6 @@
 name: Build & Release
 
 on:
-  push:
-    branches: [main, dev]
-    paths:
-      - '.github/workflows/build.yml'
-      - 'requirements.txt'
-      - 'build.py'
-      - 'build_nuitka.py'
-      - 'bilibili_gui.py'
-      - 'bilibili_drops_miner/**'
-      - '!bilibili_drops_miner/cli.py'
-      - 'img/app.ico'
-      - 'img/app.icns'
   workflow_dispatch:
     inputs:
       release:

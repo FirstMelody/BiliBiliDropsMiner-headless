@@ -1,0 +1,21 @@
+[Unit]
+Description=Bilibili four-session headless drops miner
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/opt/bilibili-drops-headless
+
+[Service]
+Type=simple
+User=bilibili
+Group=bilibili
+WorkingDirectory=/opt/bilibili-drops-headless
+ExecStart=/opt/bilibili-drops-headless/.venv/bin/python headless/run.py --config headless/config.json
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/bilibili-drops-headless/downloads/browsers
+Restart=on-failure
+RestartSec=15
+UMask=0077
+TimeoutStopSec=45
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

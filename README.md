@@ -1,241 +1,147 @@
-# Bilibili 直播掉宝助手
+# BiliBili Drops Miner · Linux Headless
 
-轻量、直接的 B 站直播掉宝/观看时长任务挂机工具。  
-支持 GUI、CLI 与 Docker WebUI，支持多房间、多会话并行与任务进度追踪。
+基于 [mi0e/BiliBiliDropsMiner](https://github.com/mi0e/BiliBiliDropsMiner)
+`0200d60` 的 Linux 无桌面守护器，默认监控守望先锋电竞直播间 `23612045`。
+保留上游 MIT 许可与 Git 历史；原项目说明见 [README.upstream.md](README.upstream.md)。
 
-- [Release 下载](https://github.com/mi0e/BiliBiliDropsMiner/releases/latest)
-- [国内下载（密码 1234）](https://wwaqd.lanzoum.com/b019vsjd5i)
+本版本通过配置文件导入 Cookie 和刷新口令，自动发现活动、启动上游
+`BilibiliWatchTimeMiner` 的 **4 个挂机会话**、查询进度、领取和回查奖励。
+Chromium 始终 headless，只负责网页、活动发现和 Cookie 操作，不承担挂机计时。
+不需要桌面、Xvfb、Windows、远端云电脑或开放 CDP 端口。
 
-## 🎈 界面预览
+## Linux 安装
 
-<details>
-<summary>点击展开 GUI 截图</summary>
-
-![Bilibili 直播掉宝助手 GUI](img/gui-preview.png)
-
-</details>
-
-## 🛠️ 功能
-
-- 多房间并发挂机，支持每房间多会话连接
-- 任务进度自动轮询 + 手动刷新
-- 支持 Gotify、Server 酱通知
-- GUI 支持配置保存/加载、日志查看、自动参数获取等
-
-## ⚠️ 免责声明
-
-> [!IMPORTANT]
-> **Disclaimer / 免责声明**
-> - 本项目主要面向个人学习研究；软件授权范围以 MIT License 为准
-> - 不保证稳定性，不提供技术支持
-> - 使用本项目产生的一切后果由用户自行承担
-> - 使用、修改与分发须遵守 MIT License、第三方权利及平台规定
-> - This project is primarily intended for personal learning and research; the MIT License defines the software grant
-> - No stability guarantee or technical support provided
-> - Users are solely responsible for any consequences of using this project
-> - Use, modification, and distribution are permitted under the MIT License; third-party rights and platform ToS still apply
-> - Please respect copyright and platform ToS
-
-## 🔍 参数获取指南
-
-### Cookie（必填）
-
-扫码登陆：GUI 中点击“扫码登录”，使用哔哩哔哩客户端扫码并确认，Cookie 会自动回填；二维码仅在本地生成。
-
-自动化嗅探：GUI 中点击“自动获取”，在弹出的 Chrome / Edge 浏览器中登录 B 站。
-
-手动获取：登录 B 站后 F12 打开开发者工具复制 Cookie，必需包含 `SESSDATA`、`DedeUserID` 和 `bili_jct`，具体获取方法自行查询。
-
-### 房间号（必填）
-
-自动化嗅探：点击“自动获取”并进入直播间，房间号会自动回填。
-
-手动获取：直播间 URL 中的数字部分即为房间号，例如 `https://live.bilibili.com/23612045` 中房间号为 `23612045`。
-
-
-### 任务 ID（可选）
-
-自动网页解析：先填写活动直播间号，再点击“自动获取模式1”，工具会尝试从静态页解析任务 ID，无需启动浏览器；如果解析失败，请尝试模式 2。
-
-自动化嗅探：点击“自动获取模式2”。程序会启动 Chrome / Edge，通过直播页静态内容或任务接口网络请求解析任务 ID。
-
-手动获取：在任务接口请求中提取 task_ids 参数。
-
-典型请求示例：
-
-```text
-https://api.bilibili.com/x/task/totalv2?csrf=xxx&task_ids=taskId1,taskId2
-```
-
-格式为逗号分隔的字符串，例如 `taskId1,taskId2`。
-
-### 通知推送（可选）
-
-常见格式：
-
-- Gotify: `gotify://host/token`
-- Server 酱: `schan://SendKey`
-
-多个通知地址可用逗号分隔。
-
-## 🤔 常见问题
-
-### Q：为什么任务时长一直为 0？
-
-任务时长不是实时结算的。任务刚启动后，通常需要至少等待 **30 秒**，系统才会同步并更新时长。
-
-如果等待后任务时长仍一直为 0，或出现「预估时长不为 0，但任务时长仍为 0」的情况，可能是账号存在风控限制。建议先停止工具，并手动打开目标直播间，观察任务时长是否会正常增加。
-
----
-
-### Q：为什么预估时长和任务实际时长不一致？
-
-可能是平台风控、直播/任务系统非实时结算或两者统计口径不同导致。
-
-任务进度以任务接口返回为准；界面中的预估观看时长只能作为最大值参考，不保证等同于活动任务最终认可的有效时长。
-
----
-
-### Q：为什么点击“自动获取模式2”后没有拉起浏览器？
-
-仅“自动获取模式2”需要浏览器，并且只支持拉起典型安装路径下的 Chrome / Edge 浏览器；模式 1 是纯 HTTP 静态解析，不会拉起浏览器。
-
-如果浏览器安装在自定义路径，可能无法被自动识别或启动。
-
----
-
-### Q：为什么首次使用“自动获取模式2”会比较慢？
-
-Selenium Manager 会自动下载缺失的浏览器驱动。
-
-首次使用“自动获取模式2”时，可能因下载驱动而耗时较久；若网络异常，也可能导致下载失败，进而无法启动浏览器。模式 1 不使用 Selenium 或浏览器驱动。
-
----
-
-### Q：线程数是不是越高越好？
-
-**不是**。
-
-线程数过高，或频繁开启 / 关闭任务，可能触发平台风控，导致请求受限或任务失败。
-
-受个人网络环境差异及 B 站流控规则影响，加速效果存在软上限，建议根据实际情况调整线程数，推荐 **60~80** 线程。
-
----
-
-### Q：风控了怎么办？
-
-由于不同账号的账号状态和风控情况存在差异，建议先将账号静置 **30 分钟以上**，然后适当减少线程数后再重试。
-
-如果仍无法正常增加任务时长，可优先使用官方直播间进行观看。
-
----
-
-### Q：加速失效
-
-加速时长不会超过直播间实际开播时长
-
-## 🚀 快速开始
-
-### Windows / Linux / macOS 源码运行
-
-1. 安装 Python 3.10+
-2. 克隆项目并安装依赖
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. 启动 GUI
-   ```bash
-   python bilibili_gui.py
-   ```
-
-macOS 上的 GUI 与 Windows 共用同一套界面和功能，支持纯 HTTP 静态解析任务 ID（模式 1），以及通过 Chrome / Edge 自动获取 Cookie、房间号和任务 ID（模式 2）。
-
-### Docker
+需要 Node.js 22+、Python 3.11+。以下命令在克隆后的仓库根目录执行：
 
 ```bash
-docker compose up -d --build
+npm ci
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-headless.txt
+
+# 浏览器下载到项目内；安装系统依赖可能需要 sudo。
+export PLAYWRIGHT_BROWSERS_PATH="$PWD/downloads/browsers"
+npx playwright-core install --with-deps chromium --no-shell
+
+cp headless/config.example.json headless/config.json
+chmod 600 headless/config.json
+# 编辑 headless/config.json，填入 cookie 和 refreshToken。
+npm start -- --check
+npm start
 ```
 
-访问 `http://127.0.0.1:23333`，默认无密码。
+Chromium 的安装和版本匹配采用 [Playwright 官方流程](https://playwright.dev/docs/browsers)。
+如已安装 Chrome/Chromium，可在 `browserExecutable` 中填写其绝对路径。
+使用 npm 下载的浏览器时，每次运行应保留相同的 `PLAYWRIGHT_BROWSERS_PATH`。
 
-| 参数 | 默认值 / 说明 |
-|------|--------------|
-| `ports` | `127.0.0.1:23333:23333`，仅本机访问 |
-| `WEB_PASSWORD` | 可选，在 `.env` 中设置；非空时启用认证，用户名 `admin` |
+## 配置和 Cookie 刷新
 
-### CLI
+示例配置见 [headless/config.example.json](headless/config.example.json)。
+`cookie` 是 Cookie 请求头原文，至少包含 `SESSDATA` 和 `bili_jct`，建议同时提供
+`DedeUserID`、`buvid3`。保留 Cookie 中的百分号编码，不进行二次解码。
 
-服务器或纯命令行环境可使用：
+**自动刷新还需要同次登录的 `ac_time_value`，仅 Cookie 无法生成刷新口令。**
+在已登录 B 站的浏览器中，打开 `https://www.bilibili.com` 的开发者工具 →
+Application / 应用 → Local Storage，复制 `ac_time_value` 到配置的 `refreshToken`。
+不要把这些值放进命令行、Issue 或仓库文件。
+
+| 配置项 | 含义 |
+| --- | --- |
+| `roomId` | 目标直播间，默认示例为守望先锋电竞 |
+| `cookie` / `refreshToken` | 首次启动或明确重新导入时使用的凭据 |
+| `dataDir` | 私有运行目录，相对配置文件解析，默认 `../data` |
+| `pythonExecutable` | miner 所用 Python，默认 `../.venv/bin/python`；也可填 `python3` |
+| `browserExecutable` | 可选的 Chromium/Chrome 二进制路径 |
+| `pollIntervalMs` | 进度、登录、直播及领取检查间隔，默认一分钟 |
+| `discoveryIntervalMs` | 新活动发现间隔，默认十分钟 |
+| `refreshIntervalMs` | 续期检查间隔，默认一天，平台要求刷新才轮换 |
+| `stallIntervalMs` | 观看进度停滞后的 miner 恢复间隔，默认十五分钟 |
+| `notifications` | 可选的 Snowluma / OneBot 11 私聊通知配置 |
+
+刷新采用 cookie/info → RSA-OAEP correspond → cookie/refresh → confirm/refresh。
+新 Cookie、新口令和待确认旧口令先原子写入 `data/session.json` 并同步到磁盘，
+然后确认作废旧口令。确认失败时保留待确认记录，重启后优先恢复确认流程。
+**刷新不会改写输入配置**；后续启动优先读取运行目录中的最新会话，避免恢复旧 Cookie。
+
+登录被强制注销时暂停挂机。重新获取同次登录的 Cookie 和刷新口令、编辑配置，
+停止当前进程后重新导入：
 
 ```bash
-python bilibili.py --cookie "SESSDATA=xxx; bili_jct=xxx" --rooms "23612045"
+npm start -- --import-session
+# 自定义配置文件路径：
+npm start -- --config /path/to/private-config.json
+# 单轮检查后退出：
+npm start -- --once
 ```
 
-获取命令帮助：`python bilibili.py --help`
+同一运行目录通过 Linux `flock` 锁防止重复启动；Python miner 还有独立进程锁。
+守护器租约超过三分钟未更新时，miner 自动停止。SIGTERM/SIGINT 会停止挂机并关闭浏览器。
 
-```shell
-Bilibili Drops Miner
+## 领取与监控
 
-Usage: python bilibili.py [OPTIONS]
+- 每分钟检查是否直播及是否有未完成任务；直播中启动四会话 miner，停播或完成时停止。
+- 从官方活动页自动识别任务和分级奖励 ID，浏览器播放器暂停。
+- 领取接口使用官方 `web_location` 和完整领奖页 Referer，至少间隔 2.5 秒；限流时退避。
+- `mission/info` 状态 0 才提交，状态 6 才记为已领取。HTTP 成功或接口 code=0 均不能替代回查。
+- 请求超时也先回查，避免服务器已处理后重复提交；失败每五分钟重试。
+- 平台要求验证码时尝试官方页面流程，仍需交互则记为 `needs_attention`，每三十分钟最多重试一次。
+  headless 无法代替人完成验证码；此时在可交互浏览器用同一账号完成官方领奖，再等待回查。
+- 平台领取成功不等于游戏内物品已经到账，最终入库以游戏或战网账号为准。
 
-Options:
-   --cookie COOKIE                        		B站登录 Cookie
-   --rooms ROOMS                          		房间号，逗号分隔
-   --threads THREADS                      		每房间会话数（可加速任务进度）
-   --reconnect-delay RECONNECT_DELAY      		断线重连延迟（秒）
-   --task-ids TASK_IDS                    		用于进度监控的任务 ID
-   --task-interval TASK_INTERVAL          		任务查询间隔（秒）
-   --notify-urls NOTIFY_URLS              		通知 URL，逗号分隔
-   --disable-task-notify                  		关闭任务完成通知	
-   -h, --help                             		显示此帮助信息并退出
-```
+`data/status.json` 为不含 Cookie 的运行状态，`data/miner-status.json` 记录实际活跃会话数量，
+`data/events-*.jsonl` 和 `data/miner.log` 记录脱敏事件。运行目录权限 0700，凭据文件权限 0600。
 
-示例：
+## Snowluma / OneBot 通知
+
+`notifications.enabled` 默认关闭。启用时填写 `websocketUrl`、`accessToken` 和收件人 QQ
+`userId`，通过 OneBot 11 `send_private_msg` 发送私聊；没有硬编码的账号或机器人配置路径。
+
+登录失效、缺失刷新口令、需要人工领奖、持续接口错误、四会话未恢复、领取五分钟未确认、
+进度十五分钟停滞时通知。所有奖励经平台确认后发送一次完成通知；同一异常只通知一次，
+恢复也通知，记录落盘后重启继续去重。发送失败在后续检查中重试，正常运行不刷屏。
+本版本通知在同一进程中运行；整台 Linux 主机或该进程完全停止时，需要外部监控才能报警。
+
+## Docker 模板
+
+提供独立 [Dockerfile.headless](Dockerfile.headless) 和 [compose.headless.yaml](compose.headless.yaml)。
+如后续需要部署，可执行：
 
 ```bash
-python bilibili.py \
-   --cookie "SESSDATA=xxx; bili_jct=xxx" \
-   --rooms "23612045,1017" \
-   --threads 2 \
-   --task-ids "taskId1,taskId2" \
-   --notify-urls "gotify://host/token" \
-   -v
+cp headless/config.example.json headless/config.json
+# 编辑凭据；确保运行用户 UID 1000 能读取配置、写入 data。
+mkdir -p data
+sudo chown 1000:1000 headless/config.json data
+chmod 600 headless/config.json
+chmod 700 data
+docker compose -f compose.headless.yaml up -d --build
 ```
 
-## 📦 打包
+容器配置仍使用 `dataDir: "../data"`、`pythonExecutable: "../.venv/bin/python"`。
+通知地址须从容器可访问，`127.0.0.1` 指向容器自身。配置只读挂载，刷新后的凭据写到持久 `data`。
+镜像构建上下文排除实际配置与运行数据；不开放浏览器、CDP 或 Web 服务端口。
+模板未在本任务中部署服务。
+
+## systemd 模板
+
+[headless/bilibili-drops-headless.service](headless/bilibili-drops-headless.service)
+默认使用独立 `bilibili` 用户和 `/opt/bilibili-drops-headless` 路径。
+部署时先自行创建用户、选择实际路径、安装依赖并设置配置与 data 的所有者，然后修改模板的
+`WorkingDirectory`、`ExecStart`、`RequiresMountsFor` 和浏览器缓存路径。
+先用服务账号通过 `--check`，再安装和启用 unit；本任务仅提供模板。
+
+## 测试与脱敏
 
 ```bash
-python build.py               # 开发模式
-python build.py --target gui  # PyInstaller 打包当前平台 GUI
-python build.py --target cli  # PyInstaller 打包 CLI
-python build.py --target gui --dmg  # macOS 额外生成 DMG
-python build_nuitka.py --target gui  # Nuitka 打包当前平台 GUI
+npm test
+env -u DISPLAY PLAYWRIGHT_BROWSERS_PATH="$PWD/downloads/browsers" npm run test:integration
+.venv/bin/python -m unittest tests.test_miner_login_guard tests.test_x25kn_worker tests.test_rewards
+.venv/bin/python headless/integration/test_runtime.py
 ```
 
-## 🧩 配置文件
+已验证 41 项 Node 测试、3 项真实 Chromium headless 端到端模拟、2 项 Linux 进程锁/退出测试及 18 项上游 Python 回归。
+端到端测试使用合成凭据和拦截后的平台响应，不访问真实账号，覆盖刷新前落盘、Cookie 轮换、
+官方领取请求及状态回查。Linux 当前版本未使用真实账号进行新一次领奖验收。
+GitHub Actions 使用同样的 Linux 检查。
 
-GUI 支持保存/加载 JSON 配置文件，格式可参考 config.example.json。
-
-
-## 🧑‍💻 开发
-
-安装开发依赖：
-
-```bash
-pip install -r requirements.txt
-```
-
-本地调试：
-
-- GUI: `python bilibili_gui.py`
-- CLI: `python bilibili.py --help`
-
-## ⭐ Stars
-
-如果这个项目对你有帮助，欢迎点一个 Star。
-
-## 📄 License
-
-本项目基于 [MIT License](LICENSE) 开源。
-
-## 🥰 通过[爱发电](https://afdian.com/a/eriiiii)赞助
+实际配置、运行会话、Cookie、刷新口令、通知令牌、SSH 密钥、私人部署地址和个人账号均不在本仓库中。
+`headless/config.json`、`*.local.json`、`data/`、`.env*` 和依赖/下载目录已被 Git 忽略。
+不要使用 `git add -f` 提交运行配置或浏览器数据。
