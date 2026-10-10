@@ -6,7 +6,8 @@
 
 本版本通过配置文件导入 Cookie 和刷新口令，自动发现活动、启动上游
 `BilibiliWatchTimeMiner` 的 **4 个挂机会话**、查询进度、领取和回查奖励。
-Chromium 始终 headless，只负责网页、活动发现和 Cookie 操作，不承担挂机计时。
+Chromium 始终 headless，只负责 Cookie 和领奖操作，不承担挂机计时。
+活动发现直接获取 HTML 并解析内嵌 JSON，不打开直播间、不执行播放器脚本。
 不需要桌面、Xvfb、Windows、远端云电脑或开放 CDP 端口。
 
 ## Linux 安装
@@ -79,7 +80,10 @@ npm start -- --once
 ## 领取与监控
 
 - 每分钟检查是否直播及是否有未完成任务；直播中启动四会话 miner，停播或完成时停止。
-- 从官方活动页自动识别任务和分级奖励 ID，浏览器播放器暂停。
+- 从官方活动页 HTML 自动识别任务和分级奖励 ID，始终不加载直播播放器。
+- 全部奖励确认已领取后进入 `monitoring_completed`，只每十分钟检查活动和奖励状态，
+  其余轮次仅写本地健康状态；Cookie 到期检查仍保留。已领取但计数回退也不会重启 miner。
+- 浏览器、活动 HTTP 请求和 miner 默认直连，不继承系统或环境变量 HTTP/SOCKS 代理。
 - 领取接口使用官方 `web_location` 和完整领奖页 Referer，至少间隔 2.5 秒；限流时退避。
 - `mission/info` 状态 0 才提交，状态 6 才记为已领取。HTTP 成功或接口 code=0 均不能替代回查。
 - 请求超时也先回查，避免服务器已处理后重复提交；失败每五分钟重试。
@@ -137,7 +141,7 @@ env -u DISPLAY PLAYWRIGHT_BROWSERS_PATH="$PWD/downloads/browsers" npm run test:i
 .venv/bin/python headless/integration/test_runtime.py
 ```
 
-已验证 41 项 Node 测试、3 项真实 Chromium headless 端到端模拟、2 项 Linux 进程锁/退出测试及 18 项上游 Python 回归。
+已验证 46 项 Node 测试、3 项真实 Chromium headless 端到端模拟、2 项 Linux 进程锁/退出测试及 18 项上游 Python 回归。
 端到端测试使用合成凭据和拦截后的平台响应，不访问真实账号，覆盖刷新前落盘、Cookie 轮换、
 官方领取请求及状态回查。Linux 当前版本未使用真实账号进行新一次领奖验收。
 GitHub Actions 使用同样的 Linux 检查。

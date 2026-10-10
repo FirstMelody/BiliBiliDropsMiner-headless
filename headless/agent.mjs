@@ -6,11 +6,12 @@ import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {discoverTasks,signWbi,parseProgress,rewardIds,receiveBody,missionInfo,verifiedClaim} from './core.mjs';
 import {refreshSession} from './refresh.mjs';
+import {fetchCampaign,directEnvironment} from './discovery.mjs';
 import {loadConfig,initialSession,redactor} from './settings.mjs';
 import {privateDirectory,atomicJson} from './storage.mjs';
 import {createNotifier} from './notify.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-export async function runAgent(config,{once=false,importSession=false,configureContext=async()=>{}}={}) {
+export async function runAgent(config,{once=false,importSession=false,configureContext=async()=>{},discoverCampaign=fetchCampaign}={}) {
 process.umask(0o077);
 const dataDir=config.dataDir;
 await privateDirectory(dataDir);
@@ -72,9 +73,9 @@ async function pageFor(prefix,url){
  return p;
 }
 async function connect(){
- if(browser?.isConnected() && home && !home.isClosed() && activity && !activity.isClosed())return;
+ if(browser?.isConnected() && home && !home.isClosed())return;
  if(browser)await browser.close().catch(()=>{});
- browser=await chromium.launch({headless:true,channel:'chromium',...(config.browserExecutable?{executablePath:config.browserExecutable}:{})});
+ browser=await chromium.launch({headless:true,channel:'chromium',args:['--no-proxy-server'],env:directEnvironment(),...(config.browserExecutable?{executablePath:config.browserExecutable}:{})});
  context=await browser.newContext();
  session=JSON.parse(await fs.readFile(path.join(dataDir,'session.json'),'utf8'));
  await context.addCookies(session.cookies);
@@ -84,12 +85,10 @@ async function connect(){
   if(refreshToken)localStorage.setItem('ac_time_value',refreshToken);
   if(pendingConfirmation)localStorage.setItem('ow_drops_pending_confirm',pendingConfirmation);
  },{refreshToken:session.refreshToken,pendingConfirmation:session.pendingConfirmation});
- activity=await pageFor('https://live.bilibili.com/'+config.roomId,'https://live.bilibili.com/'+config.roomId);
- watch=context.pages().find(p=>p.url().startsWith('https://live.bilibili.com/blanc/'+config.roomId));
+ // Retire legacy room/home tabs in this dedicated drops profile.
+ for(const page of context.pages())if(page!==home && (page.url().startsWith('https://live.bilibili.com/')||page.url()==='https://www.bilibili.com/'))await page.close();
+ activity=null;watch=null;
  discoverAt=0;refreshAt=0;
-}
-async function pauseActivity(){
- for(const frame of activity.frames())await frame.evaluate(()=>{for(const video of document.querySelectorAll('video')){video.muted=true;video.pause();}}).catch(()=>{});
 }
 async function persistSession(){
  const cookies=await context.cookies('https://www.bilibili.com','https://live.bilibili.com','https://passport.bilibili.com');
@@ -99,11 +98,10 @@ async function persistSession(){
  sessionGeneration=createHash('sha256').update(cookies.filter(c=>['SESSDATA','bili_jct'].includes(c.name)).map(c=>c.value).join('|')).digest('hex');
 }
 async function discovery(){
- await activity.reload({waitUntil:'domcontentloaded',timeout:60000});await sleep(3500);await pauseActivity();
- const raw=await activity.evaluate(()=>window.__BILIACT_EVAPAGEDATA__||window.__initialState||{});
- const found=discoverTasks(raw);
- if(JSON.stringify(found)!==JSON.stringify(tasks))await event('campaign_changed',{title:await activity.title(),taskCount:found.length});
- tasks=found;state.campaign={title:await activity.title(),tasks};discoverAt=Date.now();
+ const campaign=await discoverCampaign(config.roomId);
+ if(JSON.stringify(campaign.tasks)!==JSON.stringify(tasks))await event('campaign_changed',{title:campaign.title,taskCount:campaign.tasks.length});
+ tasks=campaign.tasks;state.campaign=campaign;discoverAt=Date.now();
+ state.discoveryMode='http_without_player';state.networkMode='direct';
 }
 async function minerControl(run){
  const command={run,roomId:config.roomId,threadCount:4,updatedAt:Date.now(),sessionGeneration};
@@ -114,7 +112,7 @@ async function minerControl(run){
  if(minerProcess?.exitCode===null)return;
  if(state.miner && Date.now()/1000-state.miner.updatedAt<20)return;
  const handle=await fs.open(path.join(dataDir,'miner.log'),'a');
- minerProcess=spawn(config.pythonExecutable,[path.join(root,'headless/miner_bridge.py'),'--data-dir',dataDir],{cwd:root,stdio:['ignore',handle.fd,handle.fd],env:{...process.env,PYTHONPATH:root,PYTHONUNBUFFERED:'1'}});
+ minerProcess=spawn(config.pythonExecutable,[path.join(root,'headless/miner_bridge.py'),'--data-dir',dataDir],{cwd:root,stdio:['ignore',handle.fd,handle.fd],env:{...directEnvironment(),PYTHONPATH:root,PYTHONUNBUFFERED:'1'}});
  minerProcess.on('error',()=>{handle.close().catch(()=>{});minerProcess=undefined;state.attention={reason:'miner_launch_failed'};});
  minerProcess.on('exit',async code=>{await handle.close().catch(()=>{});await event('miner_process_exit',{code});});
  await event('miner_started',{threads:4});
@@ -122,7 +120,7 @@ async function minerControl(run){
 async function stopWatch(){if(watch && !watch.isClosed())await watch.close();watch=null;state.player=null;watchStarted=0;stalledSince=0;await minerControl(false);}
 async function ensureWatch(){
  if(watch&&!watch.isClosed())await watch.close();watch=null;
- await pauseActivity();await persistSession();await minerControl(true);
+ await persistSession();await minerControl(true);
  if(!watchStarted){watchStarted=Date.now();stalledSince=Date.now();}
  state.player=null;
 }
@@ -142,6 +140,7 @@ async function officialFallback(info){
 }
 async function cycle(){
  await connect();
+ if(['monitoring_completed','monitoring_no_campaign'].includes(state.phase) && Date.now()-discoverAt<config.discoveryIntervalMs && Date.now()-refreshAt<config.refreshIntervalMs){await stopWatch();return;}
  nav=await api(home,'https://api.bilibili.com/x/web-interface/nav');
  state.loggedIn=nav.code===0&&nav.data?.isLogin===true;
  if(!state.loggedIn){state.phase='login_required';await stopWatch();return;}
@@ -160,11 +159,11 @@ async function cycle(){
  const progress=parseProgress(payload);state.progress=progress;
  // Reject partial API responses rather than trusting stale embedded page values.
  if(!tasks.every(t=>progress.some(p=>p.id===t.id)))throw Error('progress_tasks_missing');
- const room=await api(activity,'https://api.live.bilibili.com/room/v1/Room/room_init?id='+config.roomId);
+ const room=await api(home,'https://api.live.bilibili.com/room/v1/Room/room_init?id='+config.roomId);
  if(room.code!==0)throw Error('room_info_code_'+room.code);
  state.live=room.data.live_status===1;
  const unfinished=progress.some(p=>p.status!==6 && (p.target>0&&p.current<p.target));
- if(state.live&&unfinished){state.phase='watching';await ensureWatch();}else{await stopWatch();state.phase=state.live?'checking_rewards':'monitoring_offline';}
+ if(!state.live||!unfinished)await stopWatch();
  const ids=rewardIds(tasks,progress);
  for(const id of ids){
   const previous=state.claims[id];
@@ -180,8 +179,9 @@ async function cycle(){
   await event('claim_result',{task:id,...result});await save();await sleep(1500);
  }
  if(ids.length&&ids.every(id=>state.claims[id]?.state==='claimed')){
-  await stopWatch();state.phase='checking_rewards';
- }
+  await stopWatch();state.phase='monitoring_completed';
+ }else if(state.live&&unfinished){state.phase='watching';await ensureWatch();}
+ else{await stopWatch();state.phase=state.live?'checking_rewards':'monitoring_offline';}
  if(state.phase==='watching'){
   const changed=progress.some(p=>p.current>(lastProgress.get(p.id)??p.current));
   if(changed)stalledSince=Date.now();
@@ -198,7 +198,7 @@ process.on('SIGINT',stop);process.on('SIGTERM',stop);
 try {
  if(once){await cycle();await save();}
  else while(!stopping){
-  try{await cycle();}catch(e){state.phase='retrying';state.error=safeError(e);await event('cycle_error',{error:state.error});}
+  try{await cycle();}catch(e){state.phase='retrying';state.error=safeError(e);await stopWatch();await event('cycle_error',{error:state.error});}
   await save();
   for(let elapsed=0;elapsed<config.pollIntervalMs&&!stopping;elapsed+=1000)await sleep(1000);
  }

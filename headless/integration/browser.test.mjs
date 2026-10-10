@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {runAgent} from '../agent.mjs';
 import {discoverTasks} from '../core.mjs';
+import {parseCampaign} from '../discovery.mjs';
 
 const fixture=JSON.parse(await fs.readFile(new URL('../fixtures/owcs-s3.json',import.meta.url),'utf8'));
 const img_url='https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png';
@@ -22,7 +23,7 @@ async function setup(t,{rotate=false,claim=false,deferred=false,failFirstConfirm
   const request=route.request(),url=new URL(request.url());
   const json=payload=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});
   if(url.pathname==='/robots.txt')return route.fulfill({contentType:'text/html',body:'<html><title>home</title></html>'});
-  if(url.hostname==='live.bilibili.com'&&url.pathname==='/23612045')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<title>OWCS fixture</title><script>window.__BILIACT_EVAPAGEDATA__='+JSON.stringify(data)+'</script>'});
+  assert.notEqual(url.hostname,'live.bilibili.com','No live room page or player should be opened');
   if(url.pathname==='/x/web-interface/nav')return json({code:0,data:{isLogin:true,wbi_img:{img_url,sub_url}}});
   if(url.pathname.endsWith('/cookie/info'))return json({code:0,data:{refresh:rotate,timestamp:1702204169000}});
   if(url.pathname.startsWith('/correspond/1/'))return route.fulfill({contentType:'text/html',body:'<div id="1-name">synthetic-refresh-csrf</div>'});
@@ -39,7 +40,8 @@ async function setup(t,{rotate=false,claim=false,deferred=false,failFirstConfirm
    if(failFirstConfirm&&confirmed===1)return json({code:-504});
    rotate=false;return json({code:0});
   }
-  if(url.pathname==='/x/task/totalv2')return json({code:0,data:tasks.map(t=>({task_id:t.id,task_status:3,indicators:[{cur_value:600,limit:600}]}))});
+  // Already claimed tasks can report stale/reset counters: they must not restart miner.
+  if(url.pathname==='/x/task/totalv2')return json({code:0,data:tasks.map(t=>({task_id:t.id,task_status:3,indicators:[{cur_value:claim?600:0,limit:600}]}))});
   if(url.pathname==='/room/v1/Room/room_init')return json({code:0,data:{live_status:1}});
   if(url.pathname==='/x/activity_components/mission/info'){
    assert.equal(url.searchParams.get('web_location'),'888.126558');assert.ok(url.searchParams.has('w_rid'));
@@ -54,7 +56,7 @@ async function setup(t,{rotate=false,claim=false,deferred=false,failFirstConfirm
   // The fixture must never access an actual Bilibili account or external API.
   await route.abort();assert.fail('unhandled mocked endpoint: '+url.pathname);
  });
- const execute=()=>runAgent(config,{once:true,configureContext});
+ const execute=()=>runAgent(config,{once:true,configureContext,discoverCampaign:async()=>parseCampaign('<title>OWCS fixture</title><script>window.__BILIACT_EVAPAGEDATA__='+JSON.stringify(data)+'</script>')});
  if(deferred)return {execute,dataDir,tasks};
  const state=await execute();
  return {state,dataDir,received,confirmed,tasks};
@@ -63,7 +65,7 @@ async function setup(t,{rotate=false,claim=false,deferred=false,failFirstConfirm
 test('headless Chromium rotates and durably saves cookie before confirmation, then stops after all awards',async t=>{
  assert.equal(process.env.DISPLAY,undefined,'Run with env -u DISPLAY');
  const result=await setup(t,{rotate:true});
- assert.equal(result.confirmed,1);assert.equal(result.state.session.state,'refreshed');assert.equal(result.state.phase,'checking_rewards');
+ assert.equal(result.confirmed,1);assert.equal(result.state.session.state,'refreshed');assert.equal(result.state.phase,'monitoring_completed');
  assert.equal(result.tasks.length,6);assert.ok(result.tasks.every(t=>result.state.claims[t.id].state==='claimed'));
  const session=JSON.parse(await fs.readFile(path.join(result.dataDir,'session.json'),'utf8'));
  assert.equal(session.refreshToken,'synthetic-rotated-refresh');assert.equal(session.pendingConfirmation,null);
@@ -84,7 +86,7 @@ test('restart restores newly rotated credentials and resumes failed confirmation
  await assert.rejects(prepared.execute,/refresh_confirm_-504/);
  const pending=JSON.parse(await fs.readFile(path.join(prepared.dataDir,'session.json'),'utf8'));
  assert.equal(pending.refreshToken,'synthetic-rotated-refresh');assert.equal(pending.pendingConfirmation,'synthetic-refresh');
- const state=await prepared.execute();assert.equal(state.session.state,'valid');assert.equal(state.phase,'checking_rewards');
+ const state=await prepared.execute();assert.equal(state.session.state,'valid');assert.equal(state.phase,'monitoring_completed');
  const restored=JSON.parse(await fs.readFile(path.join(prepared.dataDir,'session.json'),'utf8'));
  assert.equal(restored.refreshToken,'synthetic-rotated-refresh');assert.equal(restored.pendingConfirmation,null);
 });
